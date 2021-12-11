@@ -6,3 +6,4 @@ __pycache*
 dist
 *.egg-info
 .pytest*
+node_modules/
