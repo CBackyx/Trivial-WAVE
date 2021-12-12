@@ -52,10 +52,10 @@ class Transactor:
         message = self.contract.functions.getCert(entityName_uri, index).call()
         print(message)
 
-    def newEntity(self, entityName: bytes, signPubKey: bytes):
+    def newEntity(self, entityName: bytes, signPubKey: bytes, attestPubKey: bytes):
         # str.encode('Alice')
         # str.encode('1111111111111111111222222')
-        tx_hash = self.contract.functions.newEntity(entityName, signPubKey).transact()
+        tx_hash = self.contract.functions.newEntity(entityName, signPubKey, attestPubKey).transact()
         tx_receipt = self.web3.eth.waitForTransactionReceipt(tx_hash)
         print(tx_receipt)
 

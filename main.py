@@ -2,6 +2,7 @@ import gmpy2
 import argparse
 import pickle
 import signature
+from transaction import Transactor
 # import pytest
 
 from cocks.utils import InvalidIdentityString
@@ -66,10 +67,15 @@ def dispatch_args(args):
         # Locally store keys
         local_save_keys(orga, (attest_sk, attest_pk, sign_sk, sign_pk))
 
-        # Load keys
-        attest_sk, attest_pk, sign_sk, sign_pk = local_load_keys(orga) 
+        # # Load keys
+        # attest_sk, attest_pk, sign_sk, sign_pk = local_load_keys(orga) 
 
-        # Publish keys on chain
+        # Publish pub keys on chain
+        transactor = Transactor()
+        sign_pk = pickle.dumps(transactor)
+        attest_pk = pickle.dumps(attest_pk)
+        orga = pickle.dumps(orga)
+        transactor.newEntity(orga, sign_pk, attest_pk)
 
         
     elif action == "grant":
