@@ -1,6 +1,7 @@
 import gmpy2
 import argparse
 import pickle
+import signature
 # import pytest
 
 from cocks.utils import InvalidIdentityString
@@ -16,6 +17,14 @@ def test_encrypt_decrypt():
     cocks_pkg = CocksPKG(128)
     test_id = "test"
     r, a = cocks_pkg.extract(test_id)
+    print(r,a)
+
+    cocks_pkg = CocksPKG(128)
+    test_id = "test"
+    r, a = cocks_pkg.extract(test_id)
+    print(r,a)
+
+    return
 
     cocks = Cocks(cocks_pkg.n)
     c_list = cocks.encrypt(m1, a)
@@ -45,6 +54,23 @@ def dispatch_args(args):
     if action == "mke":
         if not orga:
             raise Exception("No organisation name")
+
+        # Generate key pair for attestation (Cocks IBE scheme)
+        cocks_pkg = CocksPKG(128) # The pkg can be viewed as the root private key for attestation
+        attest_sk = cocks_pkg
+        attest_pk = cocks_pkg.n
+
+        # Generate key pair for signature
+        sign_sk, sign_pk = signature.generateSignKeyPair()
+
+        # Locally store keys
+        local_save_keys(orga, (attest_sk, attest_pk, sign_sk, sign_pk))
+
+        # Load keys
+        attest_sk, attest_pk, sign_sk, sign_pk = local_load_keys(orga) 
+
+        # Publish keys on chain
+
         
     elif action == "grant":
         if not (issuer and subject and permission):
@@ -65,6 +91,23 @@ def dispatch_args(args):
         raise Exception("Unsupported action")
         pass
 
+def local_save_keys(entityname, key_list):
+    # Locally store keys
+    with open("local_storage/" + entityname + ".obj", "wb") as keyfile:
+        pickle.dump(key_list, keyfile)    
+
+def local_load_keys(entityname):
+    key_list = load_all("local_storage/" + entityname + ".obj")
+    keys = list(key_list)[0]
+    return keys
+
+def load_all(filename):
+    with open(filename, "rb") as ifile:
+        while True:
+            try:
+                yield pickle.load(ifile)
+            except EOFError:
+                break
 
 def main():
     arg_parser = argparse.ArgumentParser()
@@ -84,5 +127,5 @@ def main():
     dispatch_args(args)
 
 if __name__ == "__main__":
-    # main()
-    test_encrypt_decrypt()
+    main()
+    # test_encrypt_decrypt()
