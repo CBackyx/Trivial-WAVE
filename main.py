@@ -180,7 +180,7 @@ def dispatch_args(args):
         for attest in attest_path:
             assert(attest["Cert-content"]["Subject"] == subject, "Error (not matched) subject in attest path")
 
-            # Verify certificate integrity
+            # Verify certificate integrity and validity
             if not verify_cert(attest["Cert-content"], attest["Signature"], attest["Cert-content"]["Issuer"], transactor): 
                 raise Exception("Error attestation signature")
 
@@ -199,6 +199,29 @@ def dispatch_args(args):
 
         pass
 
+    elif action == "revoke":
+        if not (issuer and subject and policy and timerange):
+            raise Exception("Lack grant args")
+
+        attest = {}
+        attest["Cert-content"] = {}
+        attest["Cert-content"]["Policy"] = policy
+        range_begin = timerange.split(":")[0]
+        range_end = timerange.split(":")[0]
+        attest["Cert-content"]["Time-range"] = (time.mktime(datetime.datetime.strptime(range_begin, "%d/%m/%Y").timetuple()), 
+                                                    time.mktime(datetime.datetime.strptime(range_end, "%d/%m/%Y").timetuple()))
+        attest["Cert-content"]["Issuer"] = issuer
+        attest["Cert-content"]["Subject"] = subject
+        
+        # Load issuer keys
+        attest_sk, attest_pk, sign_sk, sign_pk = local_load_keys(issuer)
+        cert_content_str = json.dumps(attest["Cert-content"])
+        
+        # Put revoke signature
+        transactor = Transactor()
+        transactor.putRevokeSign(signature.sign(cert_content_str, sign_sk), signature.sign(cert_content_str + ":revoked", sign_sk))  
+                    
+
     else:
         raise Exception("Unsupported action")
         pass
@@ -211,6 +234,13 @@ def verify_cert(cert, sign, signer, transactor):
     cert_str = json.dumps(cert)
     # Obtain the signer public key from the chain
     sign_pk = pickle.loads(transactor.getEntitySignPubKey(pickle.dumps(signer)))
+
+    # Check if revoked or not
+    revokeSign = transactor.getRevokeSign(sign)
+    if len(revokeSign) != 0:
+        if signature.verify(cert_str + ":revoked", revokeSign, sign_pk):
+            raise Exception("Revoked attestation")
+
     return signature.verify(cert_str, sign, sign_pk)
 
 def local_save_keys(entityname, key_list):
@@ -244,7 +274,7 @@ def load_all(filename):
 def main():
     arg_parser = argparse.ArgumentParser()
 
-    arg_parser.add_argument("-a", "--action", type=str, help="action oto be performed", choices=["mke", "grant", "prove", "verify"], required=True)
+    arg_parser.add_argument("-a", "--action", type=str, help="action oto be performed", choices=["mke", "grant", "prove", "verify", "revoke"], required=True)
 
     arg_parser.add_argument("-o", "--organisation", type=str, help="organisation / entity name")
     arg_parser.add_argument("-i", "--issuer", type=str, help="attestation issuer name")

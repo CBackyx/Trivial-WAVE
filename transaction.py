@@ -68,3 +68,12 @@ class Transactor:
         tx_hash = self.contract.functions.newEntity(entityName_uri, cert).transact()
         tx_receipt = self.web3.eth.waitForTransactionReceipt(tx_hash)
         print(tx_receipt)
+
+    def putRevokeSign(self, certSign: bytes, revokeSign: bytes):
+        tx_hash = self.contract.functions.putRevokeSign(certSign, revokeSign).transact()
+        tx_receipt = self.web3.eth.waitForTransactionReceipt(tx_hash)
+        print(tx_receipt)
+
+    def getRevokeSign(self, certSign: bytes):
+        message = self.contract.functions.getRevokeSign(certSign).call()
+        print(message)

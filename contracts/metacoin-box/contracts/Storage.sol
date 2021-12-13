@@ -8,6 +8,8 @@ contract Storage {
     mapping (bytes => Keys) key_st;
     // Entity name > Keys
 
+    mapping (bytes => bytes) revoke_st;
+
     // The mapping from entity name to address is omitted
 
     struct Keys {
@@ -36,6 +38,14 @@ contract Storage {
 
     function uploadCert(bytes memory id, bytes memory cert) public {
         cert_st[id].push(cert);
+    }
+
+    function putRevokeSign(bytes memory certSign, bytes memory revokeSign) public {
+        revoke_st[certSign] = revokeSign;
+    }
+
+    function getRevokeSign(bytes memory certSign) public view returns(bytes memory) {
+        return revoke_st[certSign];
     }
 
     function getCertNum(bytes memory id) public view returns(uint){
