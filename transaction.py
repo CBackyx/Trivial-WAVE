@@ -43,6 +43,11 @@ class Transactor:
         message = self.contract.functions.getEntitySignPubKey(entityName).call()
         print(message)
 
+    def getEntityAttestPubKey(self, entityName: bytes):
+        # str.encode('Alice')
+        message = self.contract.functions.getEntityAttestPubKey(entityName).call()
+        print(message)
+
     def getCertNum(self, entityName_uri: bytes):
         message = self.contract.functions.getCertNum(entityName_uri).call()
         print(message)

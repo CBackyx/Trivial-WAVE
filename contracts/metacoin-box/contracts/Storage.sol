@@ -30,7 +30,7 @@ contract Storage {
         return key_st[name].sign_pubKey;
     }
 
-    function getAttestPubKey(bytes memory name) public view returns(bytes memory){
+    function getEntityAttestPubKey(bytes memory name) public view returns(bytes memory){
         return key_st[name].attest_pubKey;
     }
 

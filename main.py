@@ -8,6 +8,11 @@ from transaction import Transactor
 from cocks.utils import InvalidIdentityString
 from cocks.cocks import CocksPKG, Cocks
 
+import time
+import datetime
+
+import json
+
 def test_encrypt_decrypt():
     m1 = bytes(b"Hello")
     m2 = bytes("Hello world", encoding="utf8")
@@ -49,7 +54,8 @@ def dispatch_args(args):
     orga = args.organisation
     issuer = args.issuer
     subject = args.subject
-    permission = args.permission
+    policy = args.policy
+    timerange = args.timerange
     target = args.target
     cert = args.certificate
     if action == "mke":
@@ -76,15 +82,53 @@ def dispatch_args(args):
         attest_pk = pickle.dumps(attest_pk)
         orga = pickle.dumps(orga)
         transactor.newEntity(orga, sign_pk, attest_pk)
-
         
     elif action == "grant":
-        if not (issuer and subject and permission):
+        if not (issuer and subject and policy and timerange):
             raise Exception("Lack grant args")
+
+        # Essentially an attestation is just a permission delegation certificate
+        # An attestation consists of: 
+        #   - Cert content
+        #       - Policy ([permission]@[uri])
+        #       - Time range (as a tuple of Unix timestamps)
+        #       - Issuer
+        #       - Subject
+        #   - A signature over the cert content by issuer
+        #   - An issuer attestation private key for the policy (ID)
+        # The attestation is encrypted with subject attestation public key + policy ID
+
+        attest = {}
+        attest["Cert-content"] = {}
+        attest["Cert-content"]["Policy"] = policy
+        range_begin = timerange.split(":")[0]
+        range_end = timerange.split(":")[0]
+        attest["Cert-content"]["Time-range"] = (time.mktime(datetime.datetime.strptime(range_begin, "%d/%m/%Y").timetuple()), 
+                                                    time.mktime(datetime.datetime.strptime(range_end, "%d/%m/%Y").timetuple()))
+        attest["Cert-content"]["Issuer"] = issuer
+        attest["Cert-content"]["Subject"] = subject
+        
+        # Load issuer keys
+        attest_sk, attest_pk, sign_sk, sign_pk = local_load_keys(issuer)
+        cert_content_str = json.dumps(attest["Cert-content"])
+        attest["Signature"] = signature.sign(cert_content_str, sign_sk)
+        policy_sk, policy_ID = attest_sk.extract(policy)
+        attest["Issuer-policy-sk"] = policy_sk
+
+        attest = pickle.dumps(attest)
+
+        # Obtain subject attestation public key from the chain
+        transactor = Transactor()
+        subject_attest_pk = pickle.loads(transactor.getEntityAttestPubKey(pickle.dumps(subject)))
+        cocks = Cocks(subject_attest_pk)
+        enc_attest = cocks.encrypt(attest, policy_ID) # Note that the policy_ID is the ID (or just a hash) of the policy, and is irrelevant to pkg 
+
+        transactor.uploadCert(pickle.dumps(subject) + pickle.dumps(policy), enc_attest)
+
         pass
 
     elif action == "prove":
-        if not (subject and permission and target):
+        if not (subject and policy and target):
             raise Exception("Lack prove args")
         pass
 
@@ -123,7 +167,8 @@ def main():
     arg_parser.add_argument("-o", "--organisation", type=str, help="organisation / entity name")
     arg_parser.add_argument("-i", "--issuer", type=str, help="attestation issuer name")
     arg_parser.add_argument("-s", "--subject", type=str, help="attestation subject name")
-    arg_parser.add_argument("-p", "--permission", type=str, help="permission string")
+    arg_parser.add_argument("-p", "--policy", type=str, help="policy string, formatted as [permission]@[uri]")
+    arg_parser.add_argument("-r", "--timerange", type=str, help="policy time range, formatted as [begin]:[end], of which the time format is month/day/year")
     arg_parser.add_argument("-t", "--target", type=str, help="permission prove target")
 
     arg_parser.add_argument("-c", "--certificate", type=str, help="certificate for permission verification")
