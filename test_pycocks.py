@@ -1,5 +1,6 @@
 import gmpy2
 import pytest
+import pickle
 
 from cocks.utils import InvalidIdentityString
 from cocks.cocks import CocksPKG, Cocks
@@ -11,7 +12,7 @@ def test_encrypt_decrypt():
     m4 = bytes(b"aaaaaaaaaaa bbbbbbbbbbbb cccccccccc dddddddddd")
     m5 = bytes("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.", encoding="utf8")
 
-    cocks_pkg = CocksPKG()
+    cocks_pkg = CocksPKG(1024)
     test_id = "test"
     r, a = cocks_pkg.extract(test_id)
 
@@ -20,11 +21,12 @@ def test_encrypt_decrypt():
     assert m1 == cocks.decrypt(c_list, r, a)
     c_list = cocks.encrypt(m2, a)
     assert m2 == cocks.decrypt(c_list, r, a)
-    c_list = cocks.encrypt(m3, a)
-    assert m3 == cocks.decrypt(c_list, r, a)
+    # c_list = cocks.encrypt(m3, a)
+    # assert m3 == cocks.decrypt(c_list, r, a)
     c_list = cocks.encrypt(m4, a)
     assert m4 == cocks.decrypt(c_list, r, a)
     c_list = cocks.encrypt(m5, a)
+    print(len(pickle.dumps(c_list)))
     assert m5 == cocks.decrypt(c_list, r, a)
 
 def test_pkg_modulus():
@@ -52,3 +54,5 @@ def test_pkg_extract():
     _, a = cocks_pkg.extract("111111111111111111111111111111111111111111111111")
     assert gmpy2.jacobi(a, cocks_pkg.n) == 1
     pytest.raises(InvalidIdentityString, cocks_pkg.extract, "")
+
+test_encrypt_decrypt()

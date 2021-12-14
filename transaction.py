@@ -23,10 +23,10 @@ class Transactor:
         # exit()
 
         # Deployed contract address (see `migrate` command output: `contract address`)
-        self.deployed_contract_address = '0x0E94765C2A64958F0F04a172c1F320E7bbF4d736'
+        self.deployed_contract_address = '0x5E0dd3DA6B3C3d121fA329A8c5bEd04c6A8Ee663'
 
         set_solc_version("v0.5.16")
-        compiled_sol = compile_files(["./contracts/metacoin-box/contracts/Storage.sol"])
+        compiled_sol = compile_files(["./contracts/storage-box/contracts/Storage.sol"])
         contract_id, contract_interface = compiled_sol.popitem()
         bytecode = contract_interface['bin']
         abi = contract_interface['abi']
@@ -36,25 +36,36 @@ class Transactor:
 
     def getTest(self, index):
         message = self.contract.functions.testGet(index).call()
+        return message
         print(message)
 
     def getEntitySignPubKey(self, entityName: bytes):
         # str.encode('Alice')
         message = self.contract.functions.getEntitySignPubKey(entityName).call()
+        return message
         print(message)
+
+    def getEntitySignStatus(self, entityName: bytes):
+        # str.encode('Alice')
+        message = self.contract.functions.getEntitySignStatus(entityName).call()
+        return message
+        print(message)    
 
     def getEntityAttestPubKey(self, entityName: bytes):
         # str.encode('Alice')
         message = self.contract.functions.getEntityAttestPubKey(entityName).call()
+        return message
         print(message)
 
     def getCertNum(self, entityName_uri: bytes):
         message = self.contract.functions.getCertNum(entityName_uri).call()
+        return message
         print(message)
 
     def getCert(self, entityName_uri: bytes, index):
         # str.encode('Alice')
         message = self.contract.functions.getCert(entityName_uri, index).call()
+        return message
         print(message)
 
     def newEntity(self, entityName: bytes, signPubKey: bytes, attestPubKey: bytes):
@@ -65,7 +76,7 @@ class Transactor:
         print(tx_receipt)
 
     def uploadCert(self, entityName_uri: bytes, cert: bytes):
-        tx_hash = self.contract.functions.newEntity(entityName_uri, cert).transact()
+        tx_hash = self.contract.functions.uploadCert(entityName_uri, cert).transact()
         tx_receipt = self.web3.eth.waitForTransactionReceipt(tx_hash)
         print(tx_receipt)
 
@@ -76,4 +87,5 @@ class Transactor:
 
     def getRevokeSign(self, certSign: bytes):
         message = self.contract.functions.getRevokeSign(certSign).call()
+        return(message)
         print(message)

@@ -13,6 +13,7 @@ contract Storage {
     // The mapping from entity name to address is omitted
 
     struct Keys {
+        bool non_empty;
         bytes sign_pubKey;
         bytes attest_pubKey;
     }
@@ -23,13 +24,17 @@ contract Storage {
     }
 
     function newEntity(bytes memory name, bytes memory spubk, bytes memory apubk) public returns(bool) {
-        if(key_st[name].sign_pubKey.length != 0) revert('Entity existed!');
-        key_st[name] = Keys(spubk, apubk);
+        if(key_st[name].non_empty) revert('Entity existed!');
+        key_st[name] = Keys(true, spubk, apubk);
         return true;
     }
 
     function getEntitySignPubKey(bytes memory name) public view returns(bytes memory){
         return key_st[name].sign_pubKey;
+    }
+
+    function getEntitySignStatus(bytes memory name) public view returns(bool){
+        return key_st[name].non_empty;
     }
 
     function getEntityAttestPubKey(bytes memory name) public view returns(bytes memory){
