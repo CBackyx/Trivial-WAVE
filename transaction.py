@@ -10,7 +10,7 @@ class Transactor:
         self.web3 = Web3(HTTPProvider(self.blockchain_address))
         # web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-        print(self.web3.isConnected())
+        # print(self.web3.isConnected())
 
         self.pkey = "d584bf8171cc6e7e635b82c14861b0f7e9c6a0b4ba05669839d74952d6b21ec2"
 
@@ -18,12 +18,12 @@ class Transactor:
         self.acct = self.web3.eth.account.from_key(self.pkey)
         self.web3.eth.default_account = self.acct.address
 
-        print(self.acct.address)
+        # print(self.acct.address)
 
         # exit()
 
         # Deployed contract address (see `migrate` command output: `contract address`)
-        self.deployed_contract_address = '0x5E0dd3DA6B3C3d121fA329A8c5bEd04c6A8Ee663'
+        self.deployed_contract_address = '0x3c9147bBb50647F6f1b589Ca0114DB430883e7be'
 
         set_solc_version("v0.5.16")
         compiled_sol = compile_files(["./contracts/storage-box/contracts/Storage.sol"])
@@ -73,17 +73,17 @@ class Transactor:
         # str.encode('1111111111111111111222222')
         tx_hash = self.contract.functions.newEntity(entityName, signPubKey, attestPubKey).transact()
         tx_receipt = self.web3.eth.waitForTransactionReceipt(tx_hash)
-        print(tx_receipt)
+        # print(tx_receipt)
 
     def uploadCert(self, entityName_uri: bytes, cert: bytes):
         tx_hash = self.contract.functions.uploadCert(entityName_uri, cert).transact()
         tx_receipt = self.web3.eth.waitForTransactionReceipt(tx_hash)
-        print(tx_receipt)
+        # print(tx_receipt)
 
     def putRevokeSign(self, certSign: bytes, revokeSign: bytes):
         tx_hash = self.contract.functions.putRevokeSign(certSign, revokeSign).transact()
         tx_receipt = self.web3.eth.waitForTransactionReceipt(tx_hash)
-        print(tx_receipt)
+        # print(tx_receipt)
 
     def getRevokeSign(self, certSign: bytes):
         message = self.contract.functions.getRevokeSign(certSign).call()

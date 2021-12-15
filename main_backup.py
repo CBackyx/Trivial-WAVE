@@ -60,9 +60,9 @@ def dispatch_args(args):
         # Publish pub keys on chain
         transactor = Transactor()
         sign_pk = pickle.dumps(sign_pk)
-        # print(sign_pk)
+        print(sign_pk)
         attest_pk = objectToBytes(attest_pk, group)
-        # print(attest_pk)
+        print(attest_pk)
         orga = pickle.dumps(orga)
         transactor.newEntity(orga, sign_pk, attest_pk)
         
@@ -96,7 +96,7 @@ def dispatch_args(args):
         # Load issuer keys
         attest_sk, attest_pk, sign_sk, sign_pk = local_load_keys(issuer, group)
         cert_content_str = json.dumps(attest["Cert-content"])
-        # print(cert_content_str)
+        print(cert_content_str)
         attest["Signature"] = signature.sign(cert_content_str, sign_sk)
 
         policy_ID = policy
@@ -105,12 +105,12 @@ def dispatch_args(args):
 
         attest = pickle.dumps(attest)
 
-        # print(len(attest))
+        print(len(attest))
 
         # Obtain subject attestation public key from the chain
         transactor = Transactor()
         subject_attest_pk = bytesToObject(transactor.getEntityAttestPubKey(pickle.dumps(subject)), group)
-        # print(subject_attest_pk)
+        print(subject_attest_pk)
         enc_attest = pre.encrypt_jet(subject_attest_pk, policy_ID, attest) # Note that the policy_ID is the ID (or just a hash) of the policy, and is irrelevant to pkg 
         
         # print(attest)
@@ -154,14 +154,14 @@ def dispatch_args(args):
 
             policy_sk = bytesToObject(attest.pop("Issuer-policy-sk", None), group)
 
-            # print(attest)
+            print(attest)
             attest_path.append(attest)
 
             # Obtain encrypted attestation (for the target policy) issued the the issuer
             enc_attest = transactor.getCert(pickle.dumps(attest["Cert-content"]["Issuer"]) + pickle.dumps(policy), 0)   
 
         # Store attest_path as the proof
-        # print(attest_path)
+        print(attest_path)
         local_save_proof(subject, policy, attest_path)
 
         pass
@@ -178,7 +178,7 @@ def dispatch_args(args):
         time_range_begin = -1
         time_range_end = 2**64
 
-        # print(attest_path)
+        print(attest_path)
 
         for attest in attest_path:
             # print("hahahahha")
@@ -201,7 +201,7 @@ def dispatch_args(args):
             subject = attest["Cert-content"]["Issuer"]
             # print("hahahahha")
 
-        # print(subject)
+        print(subject)
 
         assert isAuthority(subject), "The end of the proof path is not an authority"
 
@@ -230,8 +230,8 @@ def dispatch_args(args):
         # Put revoke signature
         transactor = Transactor()
         transactor.putRevokeSign(pickle.dumps(signature.sign(cert_content_str, sign_sk)), pickle.dumps(signature.sign(cert_content_str + ":revoked", sign_sk))) 
-        # print(cert_content_str)
-        # print(signature.sign(cert_content_str, sign_sk)) 
+        print(cert_content_str)
+        print(signature.sign(cert_content_str, sign_sk)) 
                     
 
     else:
@@ -315,13 +315,8 @@ def main():
 
     args = arg_parser.parse_args()
 
-    t1 = time.time()
     dispatch_args(args)
-    t2 = time.time()
-    print(t2 - t1)
 
 if __name__ == "__main__":
     main()
     # test_encrypt_decrypt()
-
-

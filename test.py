@@ -37,7 +37,7 @@ def test_encrypt_decrypt():
 def test_transaction():
     transactor = Transactor()
     entity = "admin"
-    print(transactor.getRevokeSign(pickle.dumps(entity)))
+    # print(transactor.getRevokeSign(pickle.dumps(entity)))
     # print(transactor.getEntitySignStatus(pickle.dumps(entity)))
 
 if __name__ == "__main__":
