@@ -52,10 +52,14 @@ truffle develop
 ## 客户端相关命令
 
 ```bash
+# 创建实体
 python3 main.py -a mke -o Alice
+# 授权/委托
 python3 main.py -a grant -i admin -s Alice -p read@air-condition -r 10/9/2021:21/9/2021
+# 生成proof
 python3 main.py -a prove -s Alice -p read@air-condition -t CBackyx
+# 验证proof
 python3 main.py -a verify -s Alice -p read@air-condition
+# 撤销
 python3 main.py -a revoke -i Alice -s Bob -p read@air-condition -r 10/9/2021:21/9/2021
-python3 main.py -a prove -s Jack -p read@air-condition -t CBackyx
 ```
